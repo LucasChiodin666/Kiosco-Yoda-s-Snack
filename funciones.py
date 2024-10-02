@@ -1,59 +1,91 @@
-def mostrar_menu():
-    print("\n--- Yoda's Snack ---")
-    print("1. Agregar producto al inventario")
-    print("2. Realizar una venta")
-    print("3. Mostrar productos disponibles")
-    print("4. Salir del sistema")
-    
-    #2. Agregar producto al inventario:
-#Permitir al usuario agregar productos al inventario. Cada producto debe tener 
-#un nombre, una cantidad disponible y un precio unitario.
-#Los productos deben almacenarse en una lista.
-#Ver la estructura del inventario al final de la consigna.
-def agregar_producto(inventario):
-        nombre = input("Ingrese el nombre del producto : ")
-        cantidad =  int(input("Ingrese la cantidad disponible : "))
-        precio = int(input("Ingrese el precio del producto por unidad : "))
+def validar_opcion(opcion: str) -> bool:
+    if (opcion != "1") and (opcion != "2") and (opcion != "3") and (opcion != "4"):
+        opcion_valida = False
+    else:
+        opcion_valida = True
+    return opcion_valida
+
+def validar_producto(inventario: list[list], nombre: str) -> bool:
+    elemento_encontrado = False
+    for i in range(len(inventario)):
+        for j in range(len(inventario[i])):
+            if (inventario[i][0] == nombre):
+                elemento_encontrado = True
+                break
+    return elemento_encontrado
+
+def validar_cantidad(cantidad: int) -> bool:
+    if (cantidad < 1):
+        cantidad_valida = False
+    else:
+        cantidad_valida = True
+    return cantidad_valida
+
+def agregar_producto(inventario: list[list]) -> list[list]:
+        nombre = input("Ingrese el nombre del producto : ").lower()
+        elemento_encontrado = validar_producto(inventario, nombre)
+
+        while (elemento_encontrado == True):
+            nombre = input("El elemento ingresado ya se encuentra en el inventario. Ingrese algo diferente: ").lower()
+            elemento_encontrado = validar_producto(inventario, nombre)
+
+        cantidad =  int(input("Ingrese la cantidad disponible: "))
+        cantidad_valida = validar_cantidad(cantidad)
+
+        while (cantidad_valida == False):
+            cantidad =  int(input("Cantidad Inválida. Ingrese un valor mayor a 0: "))
+            cantidad_valida = validar_cantidad(cantidad)
+        
+        precio = int(input("Ingrese el precio del producto por unidad: "))
         inventario.append([nombre, cantidad, precio])       
         return inventario
 
-#3 Realizar una venta:
-# Mostrar una lista de productos disponibles (nombre, precio y cantidad).
-# El usuario podrá seleccionar un producto y la cantidad que desea comprar.
-# Verificar que haya suficiente stock del producto seleccionado.
-# Restar la cantidad comprada del inventario.
-# Mostrar el total a pagar al cliente por la venta.
-# Si no hay suficiente stock, mostrar un mensaje que indique que no se puede 
-# realizar la venta
-def mostrar_productos(inventario):
-    print ("\---Productos Disponibles---")
-    print (inventario)
+def mostrar_productos(inventario: list[list]):
+    print ("\n---Productos Disponibles---")
+    for i in range(len(inventario)):
+        print(inventario[i])
 
-def verificar_stock(stock, cantidad):
+def verificar_stock(stock: int, cantidad: int) -> bool:
     if cantidad > stock :  
         venta_posible = False
     else:
         venta_posible = True            
     return venta_posible
 
-def calcular_precio(cantidad, precio):
+def calcular_precio(cantidad: int, precio: int) -> int:
     precio_final = precio * cantidad
     return precio_final
 
-def restar_stock(stock, cantidad):
+def restar_stock(stock: int, cantidad: int) -> int:
     nuevo_stock = stock - cantidad
     return nuevo_stock
 
-def realizar_venta(cantidad, inventario):
+def realizar_venta(inventario: list[list]) -> list[list]:
     mostrar_productos(inventario)
-    producto = input("Ingrese el nombre del producto que desea comprar : ").lower()
-    for i in inventario:
-        for j in inventario[i]:
+    producto = input("Ingrese el nombre del producto que desea comprar: ").lower()
+    producto_encontrado = validar_producto(inventario, producto)
+
+    while (producto_encontrado == False):
+        producto = input("Producto No Encontrado. Asegúrese de seleccionar un producto del inventario: ").lower()
+        producto_encontrado = validar_producto(inventario, producto)
+
+    for i in range(len(inventario)):
+        for j in range(len(inventario[i])):
             if inventario[i][0] == producto:
                 stock_producto = inventario[i][1]
+                precio_unidad = inventario[i][2]
+                posicion = i
                 break
-    cantidad = int(input("Ingrese la cantidad deseada : "))
+            break
+    cantidad = int(input("Ingrese la cantidad deseada: "))
     venta_posible = verificar_stock(stock_producto, cantidad)
-    while venta_posible == False:
-        cantidad = int(input("Cantidad mayor al stock, ingrese una menor cantidad : "))
-        venta_posible = verificar_stock(stock_producto, cantidad)
+    while (venta_posible == False):
+        cantidad = int(input("Cantidad mayor al stock, ingrese una menor cantidad: "))
+        venta_posible = verificar_stock(stock_producto, cantidad)   
+
+    precio_final = calcular_precio(cantidad, precio_unidad)
+    print(f"Total a Pagar: ${precio_final}.")
+
+    nuevo_stock = restar_stock(stock_producto, cantidad)
+    inventario[posicion][1] = nuevo_stock
+    return inventario
